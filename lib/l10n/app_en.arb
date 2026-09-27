@@ -1,0 +1,77 @@
+{
+  "@@locale": "en",
+  "appTitle": "ChargeAlarm",
+  "dashboardTitle": "Dashboard",
+  "settingsTitle": "Settings",
+
+  "batteryPercentageLabel": "Battery",
+  "chargerStatusLabel": "Charger",
+  "chargerStatusConnected": "Connected",
+  "chargerStatusCharging": "Charging",
+  "chargerStatusDisconnected": "Disconnected",
+  "chargerStatusFull": "Full",
+
+  "alarmStatusLabel": "Alarm",
+  "alarmStatusIdle": "Armed",
+  "alarmStatusSounding": "Sounding",
+  "alarmStatusDismissed": "Dismissed",
+  "alarmStatusDisabled": "Disabled",
+
+  "currentTargetLabel": "Current target",
+  "quickTargetsTitle": "Quick targets",
+  "targetOptionPercent": "{value}%",
+  "@targetOptionPercent": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "targetOptionCustom": "Custom",
+
+  "customTargetTitle": "Custom target",
+  "customTargetDescription": "Choose any percentage between 1% and 100%.",
+  "customTargetFieldLabel": "Target percentage",
+  "save": "Save",
+  "cancel": "Cancel",
+
+  "errorTargetRequired": "Enter a target percentage.",
+  "errorTargetOutOfRange": "Target must be between 1% and 100%.",
+
+  "batteryFullTitle": "Battery Full",
+  "batteryFullMessage": "Battery Full — Please Unplug the Charger",
+  "targetReachedTitle": "Target Reached",
+  "targetReachedMessage": "Your battery reached {value}%.",
+  "@targetReachedMessage": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "dismissAlarm": "Stop Alarm",
+
+  "settingsAlarmSection": "Alarm",
+  "settingsAlarmEnabled": "Enable charge alarm",
+  "settingsAlarmEnabledDescription": "Turn off to stop all monitoring and notifications.",
+  "settingsSoundSection": "Sound",
+  "settingsSoundLabel": "Alarm sound",
+  "settingsVibrationLabel": "Vibrate",
+  "settingsVibrationDescription": "Vibrate the device when the alarm sounds, where supported.",
+  "settingsAutoStopLabel": "Auto-stop on unplug",
+  "settingsAutoStopDescription": "Automatically silence the alarm when the charger is disconnected.",
+  "settingsLanguageSection": "Language",
+  "settingsAbout": "About",
+  "settingsPlatformNote": "Platform behavior",
+  "settingsIosLimitation": "On iOS, alerts fire while ChargeAlarm is open or recently backgrounded. Apple does not allow apps to run unrestricted alarms while fully closed.",
+  "settingsAndroidNote": "On Android, ChargeAlarm keeps monitoring in the background using a persistent notification, subject to your device manufacturer's battery-saving restrictions.",
+
+  "soundDefault": "Default Alarm",
+  "soundGentleChime": "Gentle Chime",
+  "soundUrgentAlert": "Urgent Alert",
+  "soundClassicBell": "Classic Bell",
+
+  "languageEnglish": "English",
+  "languageBengali": "বাংলা",
+
+  "emptyStateNoReading": "Waiting for battery data…",
+  "errorStateTitle": "Couldn't read battery status",
+  "errorStateRetry": "Retry",
+
+  "permissionNotificationTitle": "Allow notifications",
+  "permissionNotificationRationale": "ChargeAlarm needs notification permission to alert you when your target charge level is reached.",
+  "permissionBatteryOptimizationTitle": "Allow background activity",
+  "permissionBatteryOptimizationRationale": "To detect your target charge level while the screen is locked, allow ChargeAlarm to run in the background and disable battery optimization for it."
+}

@@ -1,0 +1,77 @@
+{
+  "@@locale": "bn",
+  "appTitle": "চার্জঅ্যালার্ম",
+  "dashboardTitle": "ড্যাশবোর্ড",
+  "settingsTitle": "সেটিংস",
+
+  "batteryPercentageLabel": "ব্যাটারি",
+  "chargerStatusLabel": "চার্জার",
+  "chargerStatusConnected": "সংযুক্ত",
+  "chargerStatusCharging": "চার্জ হচ্ছে",
+  "chargerStatusDisconnected": "সংযোগ বিচ্ছিন্ন",
+  "chargerStatusFull": "পূর্ণ",
+
+  "alarmStatusLabel": "অ্যালার্ম",
+  "alarmStatusIdle": "প্রস্তুত",
+  "alarmStatusSounding": "বাজছে",
+  "alarmStatusDismissed": "বন্ধ করা হয়েছে",
+  "alarmStatusDisabled": "নিষ্ক্রিয়",
+
+  "currentTargetLabel": "বর্তমান লক্ষ্যমাত্রা",
+  "quickTargetsTitle": "দ্রুত লক্ষ্যমাত্রা",
+  "targetOptionPercent": "{value}%",
+  "@targetOptionPercent": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "targetOptionCustom": "কাস্টম",
+
+  "customTargetTitle": "কাস্টম লক্ষ্যমাত্রা",
+  "customTargetDescription": "১% থেকে ১০০%-এর মধ্যে যেকোনো শতাংশ নির্বাচন করুন।",
+  "customTargetFieldLabel": "লক্ষ্যমাত্রা শতাংশ",
+  "save": "সংরক্ষণ করুন",
+  "cancel": "বাতিল",
+
+  "errorTargetRequired": "একটি লক্ষ্যমাত্রা শতাংশ লিখুন।",
+  "errorTargetOutOfRange": "লক্ষ্যমাত্রা অবশ্যই ১% থেকে ১০০%-এর মধ্যে হতে হবে।",
+
+  "batteryFullTitle": "ব্যাটারি পূর্ণ",
+  "batteryFullMessage": "ব্যাটারি পূর্ণ হয়েছে — অনুগ্রহ করে চার্জার খুলে ফেলুন",
+  "targetReachedTitle": "লক্ষ্যমাত্রা অর্জিত",
+  "targetReachedMessage": "আপনার ব্যাটারি {value}% পৌঁছেছে।",
+  "@targetReachedMessage": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "dismissAlarm": "অ্যালার্ম বন্ধ করুন",
+
+  "settingsAlarmSection": "অ্যালার্ম",
+  "settingsAlarmEnabled": "চার্জ অ্যালার্ম চালু করুন",
+  "settingsAlarmEnabledDescription": "বন্ধ করলে সব পর্যবেক্ষণ ও বিজ্ঞপ্তি বন্ধ হয়ে যাবে।",
+  "settingsSoundSection": "শব্দ",
+  "settingsSoundLabel": "অ্যালার্মের শব্দ",
+  "settingsVibrationLabel": "কম্পন",
+  "settingsVibrationDescription": "সমর্থিত হলে অ্যালার্ম বাজার সময় ডিভাইস কাঁপবে।",
+  "settingsAutoStopLabel": "চার্জার খোলার সাথে সাথে বন্ধ",
+  "settingsAutoStopDescription": "চার্জার সংযোগ বিচ্ছিন্ন হলে অ্যালার্ম স্বয়ংক্রিয়ভাবে বন্ধ হয়ে যাবে।",
+  "settingsLanguageSection": "ভাষা",
+  "settingsAbout": "সম্পর্কে",
+  "settingsPlatformNote": "প্ল্যাটফর্ম আচরণ",
+  "settingsIosLimitation": "iOS-এ, চার্জঅ্যালার্ম চালু থাকা বা সম্প্রতি ব্যাকগ্রাউন্ডে যাওয়া অবস্থায় সতর্কতা কাজ করে। অ্যাপল সম্পূর্ণ বন্ধ থাকা অ্যাপে সীমাহীন অ্যালার্ম চালানোর অনুমতি দেয় না।",
+  "settingsAndroidNote": "অ্যান্ড্রয়েডে, চার্জঅ্যালার্ম একটি স্থায়ী বিজ্ঞপ্তির মাধ্যমে ব্যাকগ্রাউন্ডে পর্যবেক্ষণ চালিয়ে যায়, যা আপনার ডিভাইস প্রস্তুতকারকের ব্যাটারি সাশ্রয় নিয়ন্ত্রণ সাপেক্ষে।",
+
+  "soundDefault": "ডিফল্ট অ্যালার্ম",
+  "soundGentleChime": "মৃদু ঘণ্টাধ্বনি",
+  "soundUrgentAlert": "জরুরি সতর্কতা",
+  "soundClassicBell": "ক্লাসিক বেল",
+
+  "languageEnglish": "English",
+  "languageBengali": "বাংলা",
+
+  "emptyStateNoReading": "ব্যাটারির তথ্যের জন্য অপেক্ষা করা হচ্ছে…",
+  "errorStateTitle": "ব্যাটারির অবস্থা পড়া যায়নি",
+  "errorStateRetry": "আবার চেষ্টা করুন",
+
+  "permissionNotificationTitle": "বিজ্ঞপ্তির অনুমতি দিন",
+  "permissionNotificationRationale": "আপনার লক্ষ্যমাত্রা চার্জ স্তরে পৌঁছালে সতর্ক করতে চার্জঅ্যালার্মের বিজ্ঞপ্তির অনুমতি প্রয়োজন।",
+  "permissionBatteryOptimizationTitle": "ব্যাকগ্রাউন্ড কার্যকলাপের অনুমতি দিন",
+  "permissionBatteryOptimizationRationale": "স্ক্রিন লক থাকা অবস্থায় লক্ষ্যমাত্রা শনাক্ত করতে, চার্জঅ্যালার্মকে ব্যাকগ্রাউন্ডে চলার অনুমতি দিন এবং এর জন্য ব্যাটারি অপ্টিমাইজেশন বন্ধ করুন।"
+}
