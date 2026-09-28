@@ -16,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import android.os.CombinedVibration
 
 /**
  * Flutter-facing bridge for [AlarmPlayerService]. Actual playback lives in
@@ -148,7 +149,15 @@ class AlarmPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             val pattern = longArrayOf(0, 800, 400, 800, 400, 800)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val manager = context.getSystemService(VibratorManager::class.java)
-                manager.vibrate(VibrationEffect.createWaveform(pattern, 0))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    val manager = context.getSystemService(VibratorManager::class.java)
+    manager.vibrate(
+        CombinedVibration.createParallel(
+            VibrationEffect.createWaveform(pattern, 0)
+        )
+    )
+}
+
             } else {
                 @Suppress("DEPRECATION")
                 val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator

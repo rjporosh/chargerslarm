@@ -19,7 +19,18 @@ final class BatteryMonitorPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
 
     private var eventSink: FlutterEventSink?
 
+    /// FlutterPlugin declares register(with:) (the Swift import of the
+    /// ObjC +registerWithRegistrar:) as a REQUIRED member. The
+    /// messenger-based overload below is a different, unrelated signature
+    /// and does not satisfy it on its own, so this adapter both meets the
+    /// protocol requirement and forwards to the entry point that
+    /// AppDelegate already calls.
+    static func register(with registrar: FlutterPluginRegistrar) {
+        register(with: registrar.messenger())
+    }
+
     static func register(with messenger: FlutterBinaryMessenger) {
+
         let instance = BatteryMonitorPlugin()
 
         let methodChannel = FlutterMethodChannel(
@@ -31,7 +42,11 @@ final class BatteryMonitorPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
         eventChannel.setStreamHandler(instance)
     }
 
-    private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    // Internal (not private): FlutterPlugin declares handle(_:result:)
+    // as a protocol requirement, so the implementation must be at least
+    // as accessible as the conformance itself.
+    func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+
         switch call.method {
         case "getCurrentReading":
             UIDevice.current.isBatteryMonitoringEnabled = true

@@ -2,7 +2,7 @@ import 'package:chargealarm/domain/logic/target_validator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final validator = TargetValidator();
+  const validator = TargetValidator();
 
   group('TargetValidator.validate', () {
     test('accepts the minimum boundary (1)', () {

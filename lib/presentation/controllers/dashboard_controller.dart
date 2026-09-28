@@ -19,6 +19,13 @@ import '../../domain/services/settings_repository.dart';
 /// [AlarmPlayerService]. This is the only place in the app where the pure
 /// domain logic is wired to real platform side effects, which keeps that
 /// logic itself trivially unit testable in isolation.
+///
+/// A single session-level flag, [targetNotifiedThisSession], records whether
+/// the alarm has already fired for the current target in the current
+/// charging session. It is cleared on both disconnect and connect so that
+/// unplugging and plugging back in while still at or above target sounds
+/// again, and cleared whenever the target or the alarm toggle changes so a
+/// newly raised target / re-enabled alarm can still fire.
 class DashboardController extends ChangeNotifier {
   DashboardController({
     required BatteryMonitorService batteryMonitor,
@@ -46,7 +53,7 @@ class DashboardController extends ChangeNotifier {
   BatteryReading? _reading;
   AlarmSettings _settings = AlarmSettings.defaults();
   AlarmStatus _status = AlarmStatus.idle;
-  bool _targetNotifiedThisSession = false;
+  bool targetNotifiedThisSession = false;
   bool _initialized = false;
   Object? _lastError;
 
@@ -74,10 +81,13 @@ class DashboardController extends ChangeNotifier {
     _initialized = true;
     notifyListeners();
 
-    _subscription = _batteryMonitor.watch().listen(_onReading, onError: (Object e) {
-      _lastError = e;
-      notifyListeners();
-    });
+    _subscription = _batteryMonitor.watch().listen(
+      _onReading,
+      onError: (Object e) {
+        _lastError = e;
+        notifyListeners();
+      },
+    );
 
     if (_settings.alarmEnabled) {
       await _batteryMonitor.startBackgroundMonitoring();
@@ -90,14 +100,20 @@ class DashboardController extends ChangeNotifier {
     final event = _stateMachine.process(
       reading,
       targetPercentage: _settings.targetPercentage,
-      targetAlreadyNotified: _targetNotifiedThisSession,
+      targetAlreadyNotified: targetNotifiedThisSession,
     );
 
+    if (event is ChargerDisconnected) {
+      // Close out the charging session. Clearing the flag *here* (and not
+      // only on connect) is what allows plugging back in while still at or
+      // above target to be treated as a fresh session and alarm again.
+      targetNotifiedThisSession = false;
+    }
     if (event is ChargerConnected) {
-      _targetNotifiedThisSession = false;
+      targetNotifiedThisSession = false;
     }
     if (event is TargetReached) {
-      _targetNotifiedThisSession = true;
+      targetNotifiedThisSession = true;
     }
 
     final decision = _alarmLogic.decide(
@@ -110,15 +126,110 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _applyDecision(AlarmDecision decision, {required int reachedPercentage}) {
+  void _applyDecision(
+    AlarmDecision decision, {
+    required int reachedPercentage,
+    bool forceRestart = false,
+  }) {
     final wasSounding = _status == AlarmStatus.sounding;
     _status = decision.status;
 
-    if (decision.shouldPlay && !wasSounding) {
-      unawaited(_alarmPlayer.start(settings: _settings, reachedPercentage: reachedPercentage));
+    if (decision.shouldPlay && (!wasSounding || forceRestart)) {
+      // The native side releases any previous player before starting a new
+      // one, so a restart is simply another start() — no stop/start pair,
+      // which would otherwise race on the platform channel.
+      unawaited(
+        _alarmPlayer.start(
+          settings: _settings,
+          reachedPercentage: reachedPercentage,
+        ),
+      );
     } else if (!decision.shouldPlay && wasSounding) {
       unawaited(_alarmPlayer.stop());
     }
+  }
+
+  /// Re-runs the alarm decision against the latest reading and the current
+  /// settings without waiting for the next battery callback.
+  ///
+  /// Settings changes are not battery changes, so nothing would otherwise
+  /// re-evaluate them. Without this, turning the charge alarm off while it
+  /// was sounding would leave it playing until the next 1% tick, re-enabling
+  /// it while already at or above target would never start it, and raising
+  /// the target above the current level would leave a stale alarm ringing.
+  ///
+  /// [restartPlayback] is set when a playback-relevant option (sound or
+  /// vibration) changed, so the already-sounding alarm is restarted with the
+  /// new cue instead of continuing with the old one.
+  void _reEvaluate({bool restartPlayback = false}) {
+    final current = _reading;
+    if (current == null) {
+      if (!_settings.alarmEnabled) {
+        _applyDecision(AlarmDecision.disabled, reachedPercentage: 0);
+      }
+      return;
+    }
+
+    final reachedPercentage = current.percentage;
+
+    // Silencing the alarm is unconditional and immediate: a disabled alarm
+    // must not ring no matter what the battery is doing.
+    if (!_settings.alarmEnabled) {
+      targetNotifiedThisSession = false;
+      _applyDecision(
+        AlarmDecision.disabled,
+        reachedPercentage: reachedPercentage,
+      );
+      return;
+    }
+
+    final atTarget =
+        current.isCharging && current.percentage >= _settings.targetPercentage;
+
+    if (atTarget) {
+      targetNotifiedThisSession = true;
+      _applyDecision(
+        const AlarmDecision(status: AlarmStatus.sounding, shouldPlay: true),
+        reachedPercentage: reachedPercentage,
+        forceRestart: restartPlayback,
+      );
+      return;
+    }
+
+    targetNotifiedThisSession = false;
+
+    if (!current.isCharging) {
+      // Unplugged: delegate to the pure logic so the auto-stop-on-unplug
+      // setting keeps deciding whether it silences now or rings on.
+      _applyDecision(
+        _alarmLogic.decide(
+          event: ChargerDisconnected(current),
+          settings: _settings,
+          currentStatus: _status,
+        ),
+        reachedPercentage: reachedPercentage,
+      );
+      return;
+    }
+
+    if (_status == AlarmStatus.sounding) {
+      // Still connected but now below target: the target was raised above
+      // the current level, so what is ringing no longer matches settings.
+      _applyDecision(
+        AlarmDecision.idle,
+        reachedPercentage: reachedPercentage,
+      );
+      return;
+    }
+
+    _applyDecision(
+      _alarmLogic.decide(
+        event: ChargingProgressed(current),
+        settings: _settings,
+        currentStatus: _status,
+      ),
+      reachedPercentage: reachedPercentage,
+    );
   }
 
   /// User-initiated dismiss/stop of a currently sounding alarm.
@@ -129,9 +240,12 @@ class DashboardController extends ChangeNotifier {
   }
 
   /// Applies a new target percentage, validating it first. Returns true if
-  /// the value was valid and applied. Resets the "already notified"
-  /// bookkeeping so a newly raised target can still fire this session, per
-  /// the "target changed while charging" edge case.
+  /// the value was valid and applied.
+  ///
+  /// The "already notified" bookkeeping is reset and the decision re-run
+  /// immediately: lowering the target below the current level must start the
+  /// alarm at once, and raising it above the current level must stop the
+  /// now-obsolete alarm and re-arm for the new target.
   Future<bool> setTarget(int candidate) async {
     final result = _validator.validate(candidate);
     if (!result.isValid) return false;
@@ -139,21 +253,30 @@ class DashboardController extends ChangeNotifier {
     _settings = _settings.copyWith(targetPercentage: candidate);
     await _settingsRepository.save(_settings);
 
-    final current = _reading;
-    _targetNotifiedThisSession =
-        current != null && current.isCharging && current.percentage < candidate ? false : _targetNotifiedThisSession;
-    if (current != null && current.percentage < candidate) {
-      _targetNotifiedThisSession = false;
-    }
+    targetNotifiedThisSession = false;
+    _reEvaluate();
 
     notifyListeners();
     return true;
   }
 
-  /// Called by the settings controller when alarm-relevant settings change,
-  /// so the dashboard reflects them without a full re-initialize.
+  /// Called by the settings controller whenever alarm-relevant settings
+  /// change, so the dashboard reflects them — and acts on them — without a
+  /// full re-initialize.
   void applySettings(AlarmSettings updated) {
+    final previous = _settings;
+    final playbackChanged = previous.soundId != updated.soundId ||
+        previous.vibrationEnabled != updated.vibrationEnabled;
+    final targetChanged =
+        previous.targetPercentage != updated.targetPercentage;
+    final enabledChanged = previous.alarmEnabled != updated.alarmEnabled;
+
     _settings = updated;
+    if (targetChanged || enabledChanged) {
+      targetNotifiedThisSession = false;
+    }
+
+    _reEvaluate(restartPlayback: playbackChanged);
     notifyListeners();
   }
 

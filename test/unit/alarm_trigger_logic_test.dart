@@ -11,7 +11,7 @@ BatteryReading _reading(int percent, ChargingConnectionState state) {
 }
 
 void main() {
-  final logic = AlarmTriggerLogic();
+  const logic = AlarmTriggerLogic();
   final enabledSettings = AlarmSettings.defaults();
   final disabledSettings = enabledSettings.copyWith(alarmEnabled: false);
 

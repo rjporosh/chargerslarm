@@ -36,3 +36,6 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# Local AI-agent tooling state
+.kilo/

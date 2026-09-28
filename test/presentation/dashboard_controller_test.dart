@@ -97,6 +97,106 @@ void main() {
     expect(settingsRepo.saveCount, 1);
   });
 
+  test('plugging back in while still above target alarms again', () async {
+    await controller.initialize();
+
+    battery.emit(_reading(90, ChargingConnectionState.charging));
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.status, AlarmStatus.sounding);
+    expect(alarmPlayer.startCount, 1);
+
+    battery.emit(_reading(90, ChargingConnectionState.disconnected));
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.status, AlarmStatus.idle);
+    expect(alarmPlayer.stopCount, 1);
+
+    // Same battery level, no discharge in between: the new charging session
+    // must still be allowed to sound.
+    battery.emit(_reading(90, ChargingConnectionState.charging));
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.status, AlarmStatus.sounding);
+    expect(alarmPlayer.startCount, 2);
+  });
+
+  test('turning the alarm off while it is sounding silences it immediately', () async {
+    await controller.initialize();
+    battery.emit(_reading(90, ChargingConnectionState.charging));
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.status, AlarmStatus.sounding);
+
+    controller.applySettings(
+      controller.settings.copyWith(alarmEnabled: false),
+    );
+
+    expect(controller.status, AlarmStatus.disabled);
+    expect(alarmPlayer.stopCount, 1);
+  });
+
+  test('turning the alarm back on while at or above target starts it', () async {
+    await controller.initialize();
+    controller.applySettings(
+      controller.settings.copyWith(alarmEnabled: false),
+    );
+    expect(controller.status, AlarmStatus.disabled);
+
+    // Battery reaches the target while the alarm is still switched off: it
+    // must stay silent and never start playback.
+    battery.emit(_reading(90, ChargingConnectionState.charging));
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.status, AlarmStatus.disabled);
+    expect(alarmPlayer.startCount, 0);
+
+    // Switching it back on while already at/above target starts at once,
+    // without waiting for another 1% tick.
+    controller.applySettings(
+      controller.settings.copyWith(alarmEnabled: true),
+    );
+
+    expect(controller.status, AlarmStatus.sounding);
+    expect(alarmPlayer.startCount, 1);
+  });
+
+  test('raising the target above the current level stops the stale alarm and re-arms', () async {
+    await controller.initialize();
+    battery.emit(_reading(85, ChargingConnectionState.charging));
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.status, AlarmStatus.sounding);
+    expect(alarmPlayer.startCount, 1);
+
+    // Target raised from 80 to 90 while sitting at 85: 85 no longer satisfies
+    // the target, so what is ringing must stop and the new target must be armed.
+    final applied = await controller.setTarget(90);
+    expect(applied, isTrue);
+    expect(controller.status, AlarmStatus.idle);
+    expect(alarmPlayer.stopCount, 1);
+
+    // Crossing the new target fires exactly once.
+    battery.emit(_reading(90, ChargingConnectionState.charging));
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.status, AlarmStatus.sounding);
+    expect(alarmPlayer.startCount, 2);
+
+    battery.emit(_reading(91, ChargingConnectionState.charging));
+    await Future<void>.delayed(Duration.zero);
+    expect(alarmPlayer.startCount, 2);
+  });
+
+  test('changing the target while disconnected and disabled does not sound', () async {
+    await controller.initialize();
+    controller.applySettings(
+      controller.settings.copyWith(alarmEnabled: false),
+    );
+
+    battery.emit(_reading(95, ChargingConnectionState.disconnected));
+    await Future<void>.delayed(Duration.zero);
+    final applied = await controller.setTarget(80);
+
+    expect(applied, isTrue);
+    expect(controller.status, AlarmStatus.disabled);
+    expect(alarmPlayer.startCount, 0);
+    expect(alarmPlayer.stopCount, 0);
+  });
+
   test('app initialized while already above target fires the alarm immediately', () async {
     battery = FakeBatteryMonitorService(_reading(95, ChargingConnectionState.charging));
     controller = DashboardController(

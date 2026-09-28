@@ -23,7 +23,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       final repo = SettingsRepositoryImpl(prefs);
 
-      final settings = const AlarmSettings(
+      const settings = AlarmSettings(
         alarmEnabled: false,
         targetPercentage: 65,
         soundId: 'classic_bell',

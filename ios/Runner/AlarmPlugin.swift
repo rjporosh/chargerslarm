@@ -25,7 +25,18 @@ final class AlarmPlugin: NSObject, FlutterPlugin {
     private var player: AVAudioPlayer?
     private var isCurrentlyPlaying = false
 
+    /// FlutterPlugin declares register(with:) (the Swift import of the
+    /// ObjC +registerWithRegistrar:) as a REQUIRED member. The
+    /// messenger-based overload below is a different, unrelated signature
+    /// and does not satisfy it on its own, so this adapter both meets the
+    /// protocol requirement and forwards to the entry point that
+    /// AppDelegate already calls.
+    static func register(with registrar: FlutterPluginRegistrar) {
+        register(with: registrar.messenger())
+    }
+
     static func register(with messenger: FlutterBinaryMessenger) {
+
         let instance = AlarmPlugin()
         let channel = FlutterMethodChannel(name: "chargealarm/alarm_control", binaryMessenger: messenger)
         channel.setMethodCallHandler(instance.handle)
@@ -33,7 +44,11 @@ final class AlarmPlugin: NSObject, FlutterPlugin {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
-    private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    // Internal (not private): FlutterPlugin declares handle(_:result:)
+    // as a protocol requirement, so the implementation must be at least
+    // as accessible as the conformance itself.
+    func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+
         switch call.method {
         case "startAlarm":
             let args = call.arguments as? [String: Any] ?? [:]

@@ -12,7 +12,7 @@ import 'package:chargealarm/domain/services/settings_repository.dart';
 class FakeBatteryMonitorService implements BatteryMonitorService {
   FakeBatteryMonitorService(this._initial);
 
-  BatteryReading _initial;
+  final BatteryReading _initial;
   final _controller = StreamController<BatteryReading>.broadcast();
   bool backgroundMonitoringActive = false;
 

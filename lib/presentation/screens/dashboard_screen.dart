@@ -136,8 +136,10 @@ class _DashboardContent {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.notifications_active_rounded,
-                color: Theme.of(context).colorScheme.onErrorContainer),
+            Icon(
+              Icons.notifications_active_rounded,
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
