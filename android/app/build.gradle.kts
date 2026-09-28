@@ -31,7 +31,8 @@ android {
             // TODO: configure real release signing before publishing; debug
             // signing is used here so `flutter build apk` succeeds locally.
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
